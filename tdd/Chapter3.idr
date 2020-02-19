@@ -64,3 +64,5 @@ addVect2 (x :: xs) (y :: ys) = map (\(left, right) => left + right) (zip x y) ::
 
 addMatrix : (Matrix c r) -> (Matrix c r) -> (Matrix c r)
 addMatrix (Mat c r xs) (Mat c r ys) = Mat c r (addVect2 xs ys)
+
+-- dummy change to test vc
