@@ -106,3 +106,31 @@ transposeMat (x :: xs) = prefixEach x (transposeMat xs)
 total transposeMat_zipWith : Vect m (Vect n elem) -> Vect n (Vect m elem)
 transposeMat_zipWith [] = replicate _ []
 transposeMat_zipWith (x :: xs) = zipWith (::) x (transposeMat_zipWith xs)
+
+-- Exercise 2
+
+addMatrix : Num a => Vect n (Vect m a) -> Vect n (Vect m a) -> Vect n (Vect m a)
+addMatrix [] [] = []
+addMatrix (x :: xs) (y :: ys) = zipWith (+) x y :: addMatrix xs ys
+
+-- Exercise 3
+
+-- [1 2]     [ 7  8  9 10]   [1*7 + 2*11 = 29] -- sum(row 1 * column 1)
+-- [3 4]  x  [11 12 13 14] =
+-- [5 6]
+
+-- Transposing:
+-- [1 2]     [ 7 11]   [1*7 + 2*11, 1*8 + 2*12, 1*9 + 2*13, 1*10 + 2*14]
+-- [3 4]  x  [ 8 12] = [3*7 + 4*11, 3*8 + 4*12, 3*9 + 4*13, 3*10 + 4*14]
+-- [5 6]     [ 9 13]   [5*7 + 6*11, 5*8 + 6*12, 5*9 + 6*13, 5*10 + 6*14]
+--           [10 14]
+
+multMatrix : Num a => Vect n (Vect m a) -> Vect m (Vect p a) -> Vect n (Vect p a)
+multMatrix xs ys = multHelper xs (transposeMat_zipWith ys)
+  where
+    sumOneRow : Num a => Vect m a -> Vect m a -> a
+    sumOneRow xs ys = sum (zipWith (*) xs ys)
+
+    multHelper : Num a => Vect n (Vect m a) -> Vect p (Vect m a) -> Vect n (Vect p a)
+    multHelper [] _ = []
+    multHelper (x :: xs) ys = map (sumOneRow x) ys :: multHelper xs ys
