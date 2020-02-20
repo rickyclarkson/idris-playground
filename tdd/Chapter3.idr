@@ -134,3 +134,13 @@ multMatrix xs ys = multHelper xs (transposeMat_zipWith ys)
     multHelper : Num a => Vect n (Vect m a) -> Vect p (Vect m a) -> Vect n (Vect p a)
     multHelper [] _ = []
     multHelper (x :: xs) ys = map (sumOneRow x) ys :: multHelper xs ys
+
+-- Implicit values: _ means infer the value.
+-- Implicit parameters: {param: Type} means infer the parameter.
+
+vect_length : Vect n elem -> Nat
+vect_length {n} xs = n -- {n} brings the argument into scope
+
+createEmpties_inferred : Vect n (Vect 0 a)
+createEmpties_inferred {n = Z} = []
+createEmpties_inferred {n = (S k)} = [] :: createEmpties
