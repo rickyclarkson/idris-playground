@@ -71,4 +71,4 @@ main : IO ()
 main = replWith (MkData _ []) "Command: " processInput
 
 -- Exercise 1 is size above, not sure why it's in the exercises.
--- Exercise 2 - search above
+-- Exercise 2 - searchEntry above
