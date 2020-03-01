@@ -10,7 +10,8 @@
 
 module Main
 
-import System -- for usleep and time
+import System
+import Data.Vect
 
 main : IO ()
 main = do
@@ -166,3 +167,85 @@ intrWith state prompt onInput = do
   let Just (toOutput, newState) = onInput state input | Nothing => do pure ()
   putStrLn toOutput
   intrWith newState prompt onInput
+
+readVectLen : (len : Nat) -> IO (Vect len String)
+readVectLen Z = pure []
+readVectLen (S k) = do
+  line <- getLine
+  xs <- readVectLen k
+  pure (line :: xs)
+
+data VectUnknown : Type -> Type where
+  MkVect : (len : Nat) -> Vect len a -> VectUnknown a
+
+readVect : IO (VectUnknown String)
+readVect = do
+  putStr "Number of elements: "
+  Just len <- readNumber | Nothing => do
+    putStrLn "Invalid length"
+    readVect
+  values <- readVectLen len
+  pure (MkVect len values)
+
+printVect : Show a => VectUnknown a -> IO ()
+printVect (MkVect len xs) = putStrLn (show xs ++ " (length " ++ show len ++ ")")
+
+-- dependent pair - a pair where the second value's type is related to the
+-- first value.
+anyVect : (n : Nat ** Vect n String)
+anyVect = (2 ** ["hello", "world"])
+
+readVect2 : IO (n : Nat ** Vect n String)
+readVect2 = do
+  x <- getLine
+  if x == ""
+    then pure (_ ** [])
+    else do
+      (_ ** xs) <- readVect2
+      pure (_ ** x :: xs)
+
+zipInputs : IO ()
+zipInputs = do
+  (len1 ** vec1) <- readVect2
+  (len2 ** vec2) <- readVect2
+  case exactLength len1 vec2 of
+    Nothing => putStrLn "Vectors are of different lengths"
+    Just vec2' => printLn (zip vec1 vec2')
+
+-- Exercise 1 - write readToBlank, reads input until user enters a blank line
+readToBlank : IO (List String)
+readToBlank = do
+  line <- getLine
+  if line == ""
+    then pure []
+    else do
+      tail <- readToBlank
+      pure (line :: tail)
+
+-- Exercise 2 - write a function to read input until user enters a blank line,
+-- then reads a filename and saves it to that file
+readToFile : IO ()
+readToFile = do
+  list <- readToBlank
+  filename <- getLine
+  Right () <- writeFile filename (show list) | Left err => putStrLn (show err)
+  pure ()
+
+-- Exercise 3 - write a function that reads the contents of a file into a
+-- dependent pair containing a length and a Vect of that length. Any errors =>
+-- empty vector.
+readVectHandle : (file : File) -> IO (n ** Vect n String)
+readVectHandle file = do
+  Right text <- fGetLine file | Left err => pure (_ ** [])
+  if text == ""
+    then pure (_ ** [])
+    else do
+      (n ** xs) <- readVectHandle file
+      pure (1 + n ** text :: xs)
+
+readVectFile : (filename : String) -> IO (n ** Vect n String)
+readVectFile filename = do
+  Right handle <- openFile filename Read | Left err => pure (_ ** [])
+  result <- readVectHandle handle
+  closeFile handle
+  pure result
